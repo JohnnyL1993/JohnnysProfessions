@@ -1,0 +1,11 @@
+<Bindings>
+	<Binding name="JOHNNYSPROFESSIONS_TOGGLE" header="JOHNNYSPROFESSIONS">
+		JohnnysProfessions.MainWindow:Toggle()
+	</Binding>
+	<Binding name="JOHNNYSPROFESSIONS_TRACKER">
+		JohnnysProfessions.TrackerWindow:Toggle()
+	</Binding>
+	<Binding name="JOHNNYSPROFESSIONS_MINIGUIDE">
+		JohnnysProfessions.MiniGuide:Toggle()
+	</Binding>
+</Bindings>

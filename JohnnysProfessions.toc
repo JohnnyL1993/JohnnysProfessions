@@ -1,0 +1,75 @@
+## Interface: 30300
+## Title: Johnny's Professions
+## Notes: Profession leveling guides 1-450, shopping list and item tracker, AH profit, cooldowns and alts overview for Warmane.
+## Author: Johnny
+## Version: 1.0
+## SavedVariables: JohnnysProfessionsDB
+
+Libs\LibStub\LibStub.lua
+Libs\CallbackHandler-1.0\CallbackHandler-1.0.xml
+Libs\AceAddon-3.0\AceAddon-3.0.xml
+Libs\AceEvent-3.0\AceEvent-3.0.xml
+Libs\AceConsole-3.0\AceConsole-3.0.xml
+Libs\AceDB-3.0\AceDB-3.0.xml
+
+Core.lua
+Modules\Skin.lua
+Modules\WindowSettings.lua
+
+Data\Professions.lua
+Data\VendorPrices.lua
+Data\Cooldowns.lua
+Data\Specializations.lua
+Data\SkillUps.lua
+Data\Nodes.lua
+Data\Disenchant.lua
+Data\Guides\Alchemy.lua
+Data\Guides\Blacksmithing.lua
+Data\Guides\Enchanting.lua
+Data\Guides\Engineering.lua
+Data\Guides\Inscription.lua
+Data\Guides\Jewelcrafting.lua
+Data\Guides\Leatherworking.lua
+Data\Guides\Tailoring.lua
+Data\Guides\Herbalism.lua
+Data\Guides\Mining.lua
+Data\Guides\Skinning.lua
+Data\Guides\Cooking.lua
+Data\Guides\FirstAid.lua
+Data\Guides\Fishing.lua
+
+Modules\ItemCache.lua
+Modules\Characters.lua
+Modules\Prices.lua
+Modules\Guide.lua
+Modules\AuctionScan.lua
+Modules\Tracker.lua
+Modules\Cooldowns.lua
+Modules\Suggestions.lua
+Modules\RecipeCard.lua
+Modules\StepAlerts.lua
+Modules\BankMail.lua
+Modules\Nodes.lua
+Modules\NodesMap.lua
+Modules\Farm.lua
+Modules\LootAdvisor.lua
+Modules\Tooltip.lua
+Modules\GuildCrafters.lua
+Modules\TradeWatch.lua
+Modules\MinimapButton.lua
+
+Modules\UI\Widgets.lua
+Modules\UI\MainWindow.lua
+Modules\UI\TabHome.lua
+Modules\UI\TabGuides.lua
+Modules\UI\TabSpecializations.lua
+Modules\UI\TabShopping.lua
+Modules\UI\TabGold.lua
+Modules\UI\TabCooldowns.lua
+Modules\UI\TabAlts.lua
+Modules\UI\TabCrafters.lua
+Modules\UI\TabSettings.lua
+Modules\UI\MiniGuide.lua
+Modules\UI\TrackerWindow.lua
+
+Modules\Init.lua
