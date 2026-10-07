@@ -11,6 +11,7 @@ An all-in-one profession companion in the spirit of Mastercraft. It includes lev
   - Gathering professions list where to farm at each skill range.
   - Finished steps are ticked, and your current step is marked.
   - The guide reminds you when it's time to visit a trainer.
+  - On realms that give 3 skill points per skill-up (Icecrown), craft counts and materials are divided by 3. This is on automatically on Icecrown and can be toggled in Settings.
 - **Mini-guide:** a small window showing your current step, how many crafts are left, materials you have vs need, and the skill-up colour. It opens automatically with the profession window. Right-click it to open the full guide.
 - **Shopping:** every material you still need to finish your guides. It shows what you have (bags, bank and mail), what your alts hold, what's still short, and what that costs.
 - **Item tracker:** item goals with progress bars and +/- buttons (Shift for 10). Add the missing materials with one click, or Shift-click any item into the tracker. You get a chat message and a sound when a goal is reached.
