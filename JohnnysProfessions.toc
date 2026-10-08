@@ -1,8 +1,8 @@
 ## Interface: 30300
 ## Title: Johnny's Professions
-## Notes: Profession leveling guides 1-450, shopping list and item tracker, AH profit, cooldowns and alts overview for Warmane.
+## Notes: Profession leveling guides 1-450, shopping list and item tracker, AH profit, materials, cooldowns and alts overview for Warmane.
 ## Author: Johnny
-## Version: 1.0
+## Version: 1.1
 ## SavedVariables: JohnnysProfessionsDB
 ## OptionalDeps: TradeSkillMaster, TradeSkillMaster_AuctionDB, Auctionator
 
