@@ -174,6 +174,61 @@ function Prices:GetSellValue(itemID)
 	return math.floor(ah * AH_CUT), stale, from
 end
 
+-- Can this item never go on the AH? Binds on pickup, quest items and
+-- account-bound items. Checked once per item from its tooltip; items the
+-- client hasn't loaded yet count as tradable until it has.
+local boundCache = {}
+local boundTip
+function Prices:IsBound(itemID)
+	if boundCache[itemID] ~= nil then
+		return boundCache[itemID]
+	end
+	local name, _, _, _, _, itemType = GetItemInfo(itemID)
+	if not name then
+		return false
+	end
+	local bound = itemType == "Quest"
+	if not bound then
+		if not boundTip then
+			boundTip = CreateFrame("GameTooltip", "JohnnysProfessionsBoundScanTooltip", UIParent, "GameTooltipTemplate")
+		end
+		boundTip:SetOwner(UIParent, "ANCHOR_NONE")
+		boundTip:SetHyperlink("item:" .. itemID)
+		for i = 2, math.min(boundTip:NumLines(), 6) do
+			local fs = _G["JohnnysProfessionsBoundScanTooltipTextLeft" .. i]
+			local text = fs and fs:GetText()
+			if text == ITEM_BIND_ON_PICKUP or text == ITEM_SOULBOUND or text == ITEM_BIND_QUEST
+				or text == ITEM_BIND_TO_ACCOUNT then
+				bound = true
+				break
+			end
+		end
+		boundTip:Hide()
+	end
+	boundCache[itemID] = bound
+	return bound
+end
+
+-- What one held item is worth: its AH sell value, but never more than a
+-- vendor would charge for it (Crystal Vials etc. get listed far above the
+-- vendor price, and nobody pays that). nil if there's no AH price or the
+-- item can't be auctioned (see IsBound).
+-- Returns copper, isStale, source ("vendor" or the AH addon name).
+function Prices:GetWorth(itemID)
+	if self:IsBound(itemID) then
+		return nil
+	end
+	local sell, stale, from = self:GetSellValue(itemID)
+	if not sell then
+		return nil
+	end
+	local vendor = self:GetVendorBuy(itemID)
+	if vendor and vendor < sell then
+		return vendor, false, "vendor"
+	end
+	return sell, stale, from
+end
+
 -- What a vendor pays for one.
 function Prices:GetVendorSell(itemID)
 	local sell = select(11, GetItemInfo(itemID))

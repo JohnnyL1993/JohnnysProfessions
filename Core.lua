@@ -52,6 +52,7 @@ local TAB_COMMANDS = {
 	spec = "Specializations", specs = "Specializations",
 	settings = "Settings", config = "Settings",
 	shop = "Shopping", shopping = "Shopping",
+	mats = "Materials", materials = "Materials",
 	gold = "Gold",
 	cd = "Cooldowns", cooldowns = "Cooldowns",
 	alts = "Alts",
@@ -89,7 +90,7 @@ function JohnnysProfessions:OnSlashCommand(input)
 	else
 		self:Print("Commands:")
 		self:Print("  /jp - show or hide the main window")
-		self:Print("  /jp home | guides | spec | shop | gold | cd | alts | settings - open a page")
+		self:Print("  /jp home | guides | spec | shop | mats | gold | cd | alts | settings - open a page")
 		self:Print("  /jp track - show or hide the item tracker")
 		self:Print("  /jp mini - show or hide the mini-guide")
 		self:Print("  /jp scan - scan AH prices (auction house must be open)")

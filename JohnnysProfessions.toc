@@ -65,6 +65,7 @@ Modules\UI\TabHome.lua
 Modules\UI\TabGuides.lua
 Modules\UI\TabSpecializations.lua
 Modules\UI\TabShopping.lua
+Modules\UI\TabMaterials.lua
 Modules\UI\TabGold.lua
 Modules\UI\TabCooldowns.lua
 Modules\UI\TabAlts.lua

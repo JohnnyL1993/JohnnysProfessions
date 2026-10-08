@@ -10,7 +10,7 @@ NS.MainWindow:AddPage("Cooldowns", Page, {
 local ROW_H = 24
 local HEAD_H = 34
 local CARD_GAP = 8
-local BAR_W = 250
+local BAR_W = 200   -- leaves room for "Ready (not used yet)" on the right
 
 local scroll, content, emptyText, alertBox
 local cards = {}

@@ -287,7 +287,6 @@ function Page:Build(f)
 	introIcon:SetPoint("LEFT", PAD, 0)
 	introText = W:Label(introCard)
 	introText:SetPoint("LEFT", introIcon, "RIGHT", 12, 0)
-	introText:SetPoint("RIGHT", -PAD, 0)
 	introText:SetTextColor(0.85, 0.85, 0.85)
 
 	scroll = CreateFrame("ScrollFrame", "JohnnysProfessionsSpecScroll", f, "UIPanelScrollFrameTemplate")
@@ -306,6 +305,12 @@ function Page:Refresh()
 	local data = SpecData(selected)
 	local p = NS.PROF_BY_KEY[selected]
 	introIcon:SetIcon(p and p.icon)
+	-- Explicit width so the text wraps (anchor-only width stays one line).
+	local cardW = introCard:GetWidth()
+	if not cardW or cardW < 200 then
+		cardW = NS.MainWindow.CONTENT_W - 24
+	end
+	introText:SetWidth(cardW - PAD - 32 - 12 - PAD)
 	introText:SetText(data.intro or "")
 	introCard:SetHeight(math.max(56, introText:GetStringHeight() + 2 * PAD))
 	scroll:ClearAllPoints()

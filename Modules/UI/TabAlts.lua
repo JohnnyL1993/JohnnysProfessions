@@ -18,12 +18,7 @@ local TABLE_COL_W = 62
 local SHARE_ROW = 20
 local MAX_SHARE = 40
 
--- Short column headers for the professions table.
-local SHORT_NAMES = {
-	Blacksmithing = "Smithing", Enchanting = "Enchant", Engineering = "Engineer",
-	Inscription = "Inscribe", Jewelcrafting = "Jewelcraft", Leatherworking = "Leather",
-	Herbalism = "Herbs",
-}
+local TABLE_ICON = 16
 
 local function HighestSkill(char)
 	local best = 0
@@ -149,7 +144,7 @@ local function AccountWorth()
 		gold = gold + (char.money or 0)
 		for _, store in ipairs({ char.bags, char.bank, char.mail }) do
 			for id, n in pairs(store or {}) do
-				local each = NS.Prices:GetSellValue(id)
+				local each = NS.Prices:GetWorth(id)
 				if each then
 					mats = mats + each * n
 				end
@@ -215,10 +210,25 @@ local function NewCard()
 		line.rank:SetJustifyH("RIGHT")
 		card.profs[i] = line
 	end
-	card.secondary = W:Label(card)
-	card.secondary:SetPoint("BOTTOMLEFT", 10, 8)
-	card.secondary:SetPoint("RIGHT", -64, 0)
-	card.secondary:SetTextColor(unpack(W.COLORS.muted))
+	card.divider = card:CreateTexture(nil, "ARTWORK")
+	card.divider:SetTexture(NS.Skin.WHITE)
+	card.divider:SetVertexColor(0.2, 0.2, 0.2, 1)
+	card.divider:SetPoint("TOPLEFT", 10, -84)
+	card.divider:SetPoint("TOPRIGHT", -10, -84)
+	card.divider:SetHeight(1)
+	-- Secondary skills: icon + rank, side by side (names are in the tooltip).
+	card.secondary = {}
+	for i = 1, 3 do
+		local s = CreateFrame("Frame", nil, card)
+		s:SetSize(64, 16)
+		s:SetPoint("BOTTOMLEFT", 10 + (i - 1) * 70, 7)
+		s.icon = W:CreateIcon(s, 16, nil, false)
+		s.icon:SetPoint("LEFT", 0, 0)
+		s.rank = W:Label(s)
+		s.rank:SetPoint("LEFT", s.icon, "RIGHT", 5, 0)
+		s.rank:SetTextColor(0.82, 0.82, 0.82)
+		card.secondary[i] = s
+	end
 	card.hide = NS.Skin:CreateButton(card, 50, 16, "Hide")
 	card.hide:SetPoint("BOTTOMRIGHT", -8, 6)
 	card.hide:SetScript("OnClick", function(self)
@@ -251,7 +261,7 @@ local function FillCard(card, entry)
 		local s = char.skills and char.skills[p.key]
 		if s then
 			if p.secondary then
-				table.insert(secondary, string.format("%s %d", p.key, s.rank))
+				table.insert(secondary, { p = p, s = s })
 			else
 				table.insert(primaries, { p = p, s = s })
 			end
@@ -275,7 +285,16 @@ local function FillCard(card, entry)
 			line:Hide()
 		end
 	end
-	card.secondary:SetText(table.concat(secondary, "  "))
+	for i, slot in ipairs(card.secondary) do
+		local e = secondary[i]
+		if e then
+			slot.icon:SetIcon(e.p.icon, false)
+			slot.rank:SetText(e.s.rank)
+			slot:Show()
+		else
+			slot:Hide()
+		end
+	end
 	card.hide.text:SetText(entry.hidden and "Show" or "Hide")
 	card:SetAlpha(entry.hidden and 0.55 or 1)
 end
@@ -329,17 +348,46 @@ end
 ----------------------------------------------------------------------------
 -- Refresh
 ----------------------------------------------------------------------------
-local function TableCell(row, i)
+-- Column sizes change with how many professions are shown, so cells are
+-- re-placed on every refresh.
+local function TableCell(row, i, nameW, colW)
 	row.cells = row.cells or {}
 	local fs = row.cells[i]
 	if not fs then
 		fs = NS.Widgets:Label(row)
-		fs:SetPoint("LEFT", TABLE_NAME_W + (i - 1) * TABLE_COL_W, 0)
-		fs:SetWidth(TABLE_COL_W - 4)
 		fs:SetJustifyH("CENTER")
 		row.cells[i] = fs
 	end
+	fs:ClearAllPoints()
+	fs:SetPoint("LEFT", nameW + (i - 1) * colW, 0)
+	fs:SetWidth(colW - 4)
 	return fs
+end
+
+-- Header cell: the profession's icon, its name in a tooltip.
+local function HeadIcon(row, i, nameW, colW, p)
+	row.icons = row.icons or {}
+	local b = row.icons[i]
+	if not b then
+		b = CreateFrame("Button", nil, row)
+		b:SetSize(TABLE_ICON, TABLE_ICON)
+		b.tex = b:CreateTexture(nil, "ARTWORK")
+		b.tex:SetAllPoints()
+		b.tex:SetTexCoord(0.08, 0.92, 0.08, 0.92)
+		b:SetScript("OnEnter", function(self)
+			GameTooltip:SetOwner(self, "ANCHOR_TOP")
+			GameTooltip:AddLine(self.prof)
+			GameTooltip:Show()
+		end)
+		b:SetScript("OnLeave", GameTooltip_Hide)
+		row.icons[i] = b
+	end
+	b:ClearAllPoints()
+	b:SetPoint("CENTER", row, "LEFT", nameW + (i - 1) * colW + (colW - 4) / 2, 0)
+	b.tex:SetTexture(p.icon)
+	b.prof = p.key
+	b:Show()
+	return b
 end
 
 local function TableRow(i)
@@ -427,9 +475,11 @@ function Page:Refresh()
 			end
 		end
 	end
-	local maxCols = math.floor((width - TABLE_NAME_W) / TABLE_COL_W)
-	while #cols > maxCols do
-		table.remove(cols)
+	-- Icon headers are narrow, so columns just shrink until every profession fits.
+	local nameW = TABLE_NAME_W
+	local colW = TABLE_COL_W
+	if #cols > 0 then
+		colW = math.min(TABLE_COL_W, math.floor((width - nameW) / #cols))
 	end
 	y = Title(2, "Professions", y)
 	local head = TableRow(1)
@@ -439,7 +489,10 @@ function Page:Refresh()
 	head.bg:SetVertexColor(1, 1, 1, 0.08)
 	head.name:SetText("|cff9e9e9eCharacter|r")
 	for c, p in ipairs(cols) do
-		TableCell(head, c):SetText("|cff9e9e9e" .. (SHORT_NAMES[p.key] or p.key) .. "|r")
+		HeadIcon(head, c, nameW, colW, p)
+	end
+	for c = #cols + 1, #(head.icons or {}) do
+		head.icons[c]:Hide()
 	end
 	head:Show()
 	for i, entry in ipairs(chars) do
@@ -451,7 +504,7 @@ function Page:Refresh()
 		row.name:SetText(NS:ClassColoredName(entry.name, entry.char.class))
 		for c, p in ipairs(cols) do
 			local s = entry.char.skills and entry.char.skills[p.key]
-			local cell = TableCell(row, c)
+			local cell = TableCell(row, c, nameW, colW)
 			if s then
 				local color = s.rank >= 450 and "|cffffffff" or (s.rank >= s.max and "|cffffd200" or "|cffc8c8c8")
 				cell:SetText(color .. s.rank .. "|r")

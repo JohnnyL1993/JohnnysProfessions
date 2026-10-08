@@ -23,8 +23,9 @@ NS.VENDOR_PRICES = {
 	-- Vials
 	[3371] = 4,       -- Empty Vial
 	[3372] = 40,      -- Leaded Vial
-	[8925] = 500,     -- Crystal Vial
-	[18256] = 2000,   -- Imbued Vial
+	[8925] = 2500,    -- Crystal Vial
+	[18256] = 4000,   -- Imbued Vial (sold in 5s for 2g)
+	[40411] = 10000,  -- Enchanted Vial (sold in 5s for 5g)
 	-- Smithing / engineering
 	[2880] = 100,     -- Weak Flux
 	[3466] = 2000,    -- Strong Flux
