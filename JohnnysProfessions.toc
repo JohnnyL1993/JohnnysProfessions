@@ -4,6 +4,7 @@
 ## Author: Johnny
 ## Version: 1.0
 ## SavedVariables: JohnnysProfessionsDB
+## OptionalDeps: TradeSkillMaster, TradeSkillMaster_AuctionDB, Auctionator
 
 Libs\LibStub\LibStub.lua
 Libs\CallbackHandler-1.0\CallbackHandler-1.0.xml

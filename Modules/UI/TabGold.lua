@@ -316,7 +316,11 @@ function Page:Refresh()
 	end
 
 	local count, oldest = NS.Prices:Summary()
-	if oldest then
+	local external = NS.Prices:ExternalSourceName()
+	if external then
+		summaryText:SetText(string.format("AH prices from %s, with this addon's own scan (%d items) for anything they don't know.",
+			external, count))
+	elseif oldest then
 		summaryText:SetText(string.format("%d AH prices, oldest scanned %s ago. Scan again at the AH to update.",
 			count, NS:FormatDuration(math.max(60, time() - oldest))))
 	else

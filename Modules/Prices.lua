@@ -1,5 +1,6 @@
--- Price lookups. Everything comes from this addon's own AH scans (see
--- AuctionScan.lua) or the vendor price table - no other addon is consulted.
+-- Price lookups. AH prices come from TradeSkillMaster's AuctionDB or
+-- Auctionator when either is installed (and the option is on), falling back
+-- to this addon's own AH scans (see AuctionScan.lua); plus vendor prices.
 local NS = JohnnysProfessions
 NS.Prices = {}
 local Prices = NS.Prices
@@ -7,20 +8,82 @@ local Prices = NS.Prices
 local STALE_AFTER = 48 * 3600
 local AH_CUT = 0.95
 
+NS:RegisterOption("externalPrices", true, "Prices",
+	"Use TSM or Auctionator prices",
+	"Takes AH prices from TradeSkillMaster (AuctionDB market value) or Auctionator when installed. Items they don't know fall back to this addon's own scan.")
+
 -- Raw scan record for an item, or nil if it has never been scanned.
 function Prices:GetScan(itemID)
 	return NS:RealmDB().prices[itemID]
 end
 
--- Returns (copper, isStale) for the AH price, or nil if the item has never
--- been seen on the AH. `market` (the cost of buying a realistic quantity) is
--- preferred over the single cheapest listing.
+----------------------------------------------------------------------------
+-- Other addons' price data. Each returns copper or nil, and never errors
+-- (their databases may not be loaded yet).
+----------------------------------------------------------------------------
+local function FromTSM(itemID)
+	if not (TSMAPI and TSMAPI.GetItemValue) then
+		return nil
+	end
+	local item = "item:" .. itemID
+	local ok, v = pcall(TSMAPI.GetItemValue, TSMAPI, item, "DBMarket")
+	if not (ok and type(v) == "number" and v > 0) then
+		ok, v = pcall(TSMAPI.GetItemValue, TSMAPI, item, "DBMinBuyout")
+	end
+	return ok and type(v) == "number" and v > 0 and v or nil
+end
+
+-- Auctionator keys its data by item name, so the item must be cached.
+local function FromAuctionator(itemID)
+	if not (Atr_GetAuctionPrice and gAtr_ScanDB) then
+		return nil
+	end
+	local name = GetItemInfo(itemID)
+	if not name then
+		return nil
+	end
+	local ok, v = pcall(Atr_GetAuctionPrice, name)
+	return ok and type(v) == "number" and v > 0 and v or nil
+end
+
+local EXTERNAL = {
+	{ name = "TSM", get = FromTSM, loaded = function() return TSMAPI and TSMAPI.GetItemValue end },
+	{ name = "Auctionator", get = FromAuctionator, loaded = function() return Atr_GetAuctionPrice end },
+}
+
+-- Names of the installed price addons being used, e.g. "TSM, Auctionator",
+-- or nil when none are (or the option is off).
+function Prices:ExternalSourceName()
+	if not NS:Option("externalPrices") then
+		return nil
+	end
+	local names = {}
+	for _, src in ipairs(EXTERNAL) do
+		if src.loaded() then
+			table.insert(names, src.name)
+		end
+	end
+	return #names > 0 and table.concat(names, ", ") or nil
+end
+
+-- Returns (copper, isStale, sourceName) for the AH price, or nil if no
+-- source knows the item. Other addons' data is never marked stale - they
+-- keep their own history. For our own scan, `market` (the cost of buying a
+-- realistic quantity) is preferred over the single cheapest listing.
 function Prices:GetAH(itemID)
+	if NS:Option("externalPrices") then
+		for _, src in ipairs(EXTERNAL) do
+			local v = src.get(itemID)
+			if v then
+				return v, false, src.name
+			end
+		end
+	end
 	local p = self:GetScan(itemID)
 	if not p or not (p.market or p.min) then
 		return nil
 	end
-	return p.market or p.min, (time() - (p.time or 0)) > STALE_AFTER
+	return p.market or p.min, (time() - (p.time or 0)) > STALE_AFTER, "JP scan"
 end
 
 ----------------------------------------------------------------------------
@@ -88,26 +151,27 @@ merchantEvents:SetScript("OnEvent", function(_, event)
 end)
 
 -- What it costs to obtain one: the cheaper of the AH and a vendor.
--- Returns copper, source ("ah" / "vendor"), isStale.
+-- Returns copper, source ("ah" / "vendor"), isStale, and for AH prices the
+-- addon it came from ("TSM" / "Auctionator" / "JP scan").
 function Prices:GetCost(itemID)
-	local ah, stale = self:GetAH(itemID)
+	local ah, stale, from = self:GetAH(itemID)
 	local vendor = self:GetVendorBuy(itemID)
 	if vendor and (not ah or vendor <= ah) then
 		return vendor, "vendor", false
 	end
 	if ah then
-		return ah, "ah", stale
+		return ah, "ah", stale, from
 	end
 	return nil
 end
 
 -- What one sells for on the AH after the 5% cut, or nil if unknown.
 function Prices:GetSellValue(itemID)
-	local ah, stale = self:GetAH(itemID)
+	local ah, stale, from = self:GetAH(itemID)
 	if not ah then
 		return nil
 	end
-	return math.floor(ah * AH_CUT), stale
+	return math.floor(ah * AH_CUT), stale, from
 end
 
 -- What a vendor pays for one.

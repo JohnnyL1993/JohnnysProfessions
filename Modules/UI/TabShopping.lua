@@ -34,9 +34,9 @@ local function RowTooltip(row, tt)
 	for _, alt in ipairs(e.altList) do
 		tt:AddDoubleLine("  " .. NS:ClassColoredName(alt.name, alt.class), alt.count, 1, 1, 1, 1, 1, 1)
 	end
-	local each, source, stale = NS.Prices:GetCost(e.id)
+	local each, source, stale, from = NS.Prices:GetCost(e.id)
 	if each then
-		tt:AddDoubleLine("Price each (" .. (source == "vendor" and "vendor" or "AH") .. (stale and ", old" or "") .. ")",
+		tt:AddDoubleLine("Price each (" .. (source == "vendor" and "vendor" or ("AH, " .. from)) .. (stale and ", old" or "") .. ")",
 			NS:FormatMoney(each), 1, 0.82, 0, 1, 1, 1)
 	else
 		tt:AddLine("No price yet - scan at the auction house.", 0.6, 0.6, 0.6)

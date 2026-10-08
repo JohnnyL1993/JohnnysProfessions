@@ -206,7 +206,7 @@ function Sug:Get(includeHidden)
 	end
 
 	local _, oldest = NS.Prices:Summary()
-	if not oldest or time() - oldest > STALE_AFTER then
+	if not NS.Prices:ExternalSourceName() and (not oldest or time() - oldest > STALE_AFTER) then
 		local unpriced = 0
 		for _, e in ipairs(NS.Guide:ShoppingList(NS.Guide:MyGuidedProfessions())) do
 			if e.short > 0 and not NS.Prices:GetCost(e.id) then
