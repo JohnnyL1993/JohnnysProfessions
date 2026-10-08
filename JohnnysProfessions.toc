@@ -2,7 +2,7 @@
 ## Title: Johnny's Professions
 ## Notes: Profession leveling guides 1-450, shopping list and item tracker, AH profit, materials, cooldowns and alts overview for Warmane.
 ## Author: Johnny
-## Version: 1.1
+## Version: 1.2
 ## SavedVariables: JohnnysProfessionsDB
 ## OptionalDeps: TradeSkillMaster, TradeSkillMaster_AuctionDB, Auctionator
 
@@ -15,6 +15,7 @@ Libs\AceDB-3.0\AceDB-3.0.xml
 
 Core.lua
 Modules\Skin.lua
+Modules\VersionCheck.lua
 Modules\WindowSettings.lua
 
 Data\Professions.lua

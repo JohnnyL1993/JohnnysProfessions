@@ -55,6 +55,8 @@ local function Build()
 	frame.title:ClearAllPoints()
 	frame.title:SetPoint("TOP", 0, -9)
 
+	NS.VersionCheck:AttachNotice(frame)
+
 	-- Sidebar
 	local side = CreateFrame("Frame", nil, frame)
 	side:SetPoint("TOPLEFT", 1, -30)
