@@ -66,6 +66,7 @@ end
 
 function Page:Build(f)
 	local scroll = CreateFrame("ScrollFrame", "JohnnysProfessionsSettingsScroll", f, "UIPanelScrollFrameTemplate")
+	NS.Skin:StyleScrollBar(scroll)
 	scroll:SetPoint("TOPLEFT", 0, 0)
 	scroll:SetPoint("BOTTOMRIGHT", -24, 0)
 	local content = CreateFrame("Frame", nil, scroll)

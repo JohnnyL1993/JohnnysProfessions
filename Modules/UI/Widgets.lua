@@ -33,10 +33,8 @@ function W:CreateWindow(key, label, width, height)
 	end
 	Skin:StylePanel(f)
 
-	f.title = f:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-	f.title:SetPoint("TOPLEFT", 10, -9)
-	f.title:SetTextColor(1, 1, 1)
-	f.title:SetText(label)
+	-- Title strip: lighter band, rule underneath, uppercase condensed title.
+	f.title = Skin:AddHeader(f, label)
 
 	local close = Skin:CreateButton(f, 20, 20, "X")
 	close:SetPoint("TOPRIGHT", -4, -4)
@@ -53,12 +51,12 @@ end
 -- bright white border + text when selected, dimmed grey otherwise.
 function W:SetSelected(btn, selected)
 	if selected then
-		btn:SetBackdropColor(0.16, 0.16, 0.16, 0.95)
-		btn:SetBackdropBorderColor(0.9, 0.9, 0.9, 1)
+		btn:SetBackdropColor(0.122, 0.153, 0.169, 0.95)
+		btn:SetBackdropBorderColor(0.725, 0.886, 0.290, 1)
 		btn.text:SetTextColor(1, 1, 1)
 	else
-		btn:SetBackdropColor(0.06, 0.06, 0.06, 0.95)
-		btn:SetBackdropBorderColor(0.3, 0.3, 0.3, 1)
+		btn:SetBackdropColor(0.090, 0.114, 0.125, 0.95)
+		btn:SetBackdropBorderColor(0.180, 0.224, 0.243, 1)
 		btn.text:SetTextColor(0.7, 0.7, 0.7)
 	end
 end
@@ -74,11 +72,11 @@ end
 ----------------------------------------------------------------------------
 W.COLORS = {
 	text = { 1, 1, 1 },
-	muted = { 0.62, 0.62, 0.62 },
-	dim = { 0.42, 0.42, 0.42 },
-	card = { 0.075, 0.075, 0.075, 0.95 },
-	cardBorder = { 0.22, 0.22, 0.22, 1 },
-	highlight = { 0.9, 0.9, 0.9, 1 },
+	muted = { 0.604, 0.659, 0.651 },
+	dim = { 0.560, 0.620, 0.610 },
+	card = { 0.090, 0.114, 0.125, 0.95 },
+	cardBorder = { 0.180, 0.224, 0.243, 1 },
+	highlight = { 0.725, 0.886, 0.290, 1 },
 }
 
 -- A slightly lighter rounded-off panel used for every content block.
@@ -104,9 +102,8 @@ end
 
 -- Small caps-style grey heading ("PROFESSIONS", "SUGGESTIONS").
 function W:SectionTitle(parent, text)
-	local fs = parent:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	local fs = Skin:Heading(parent, 11, Skin.C.muted)
 	fs:SetJustifyH("LEFT")
-	fs:SetTextColor(unpack(self.COLORS.muted))
 	fs:SetText(strupper(text or ""))
 	return fs
 end
@@ -116,8 +113,8 @@ function W:CreateIcon(parent, size, texture, desaturate)
 	local holder = CreateFrame("Frame", nil, parent)
 	holder:SetSize(size, size)
 	holder:SetBackdrop({ bgFile = Skin.WHITE, edgeFile = Skin.WHITE, edgeSize = 1 })
-	holder:SetBackdropColor(0, 0, 0, 1)
-	holder:SetBackdropBorderColor(0.3, 0.3, 0.3, 1)
+	holder:SetBackdropColor(0.039, 0.051, 0.055, 1)
+	holder:SetBackdropBorderColor(0.180, 0.224, 0.243, 1)
 	local tex = holder:CreateTexture(nil, "ARTWORK")
 	tex:SetPoint("TOPLEFT", 1, -1)
 	tex:SetPoint("BOTTOMRIGHT", -1, 1)
@@ -137,8 +134,8 @@ function W:CreateProgressBar(parent, width, height)
 	local bar = CreateFrame("Frame", nil, parent)
 	bar:SetSize(width, height)
 	bar:SetBackdrop({ bgFile = Skin.WHITE, edgeFile = Skin.WHITE, edgeSize = 1 })
-	bar:SetBackdropColor(0.12, 0.12, 0.12, 1)
-	bar:SetBackdropBorderColor(0.25, 0.25, 0.25, 1)
+	bar:SetBackdropColor(0.090, 0.114, 0.125, 1)
+	bar:SetBackdropBorderColor(0.180, 0.224, 0.243, 1)
 	local fill = bar:CreateTexture(nil, "ARTWORK")
 	fill:SetTexture(Skin.WHITE)
 	fill:SetVertexColor(0.85, 0.85, 0.85, 1)
@@ -161,8 +158,10 @@ function W:CreateProgressBar(parent, width, height)
 	return bar
 end
 
--- Sidebar navigation entry: greyed icon + label, white bar on the left and
--- a lighter background when selected.
+-- Sidebar navigation entry: greyed icon + label, and on the right a live
+-- count where the page has one (cooldowns ready, items still short) - the
+-- caller sets it with btn.num:SetText and btn.hasCount. Lime bar on the left
+-- and a lighter background when selected.
 function W:CreateNavButton(parent, width, label, icon)
 	local btn = CreateFrame("Button", nil, parent)
 	btn:SetSize(width, 28)
@@ -177,7 +176,7 @@ function W:CreateNavButton(parent, width, label, icon)
 	hl:SetVertexColor(1, 1, 1, 0.06)
 	local bar = btn:CreateTexture(nil, "ARTWORK")
 	bar:SetTexture(Skin.WHITE)
-	bar:SetVertexColor(1, 1, 1, 1)
+	bar:SetVertexColor(0.725, 0.886, 0.290, 1)
 	bar:SetPoint("TOPLEFT")
 	bar:SetPoint("BOTTOMLEFT")
 	bar:SetWidth(2)
@@ -193,17 +192,30 @@ function W:CreateNavButton(parent, width, label, icon)
 	fs:SetPoint("LEFT", tex, "RIGHT", 10, 0)
 	fs:SetText(label)
 	btn.text = fs
+	local num = Skin:Heading(btn, 12, Skin.C.dim)
+	num:SetPoint("RIGHT", btn, "RIGHT", -8, 0)
+	btn.num = num
 	function btn:SetSelected(selected)
+		local C = Skin.C
 		if selected then
-			bg:SetVertexColor(1, 1, 1, 0.1)
+			bg:SetVertexColor(0.122, 0.153, 0.169, 1)
 			bar:Show()
 			tex:SetDesaturated(false)
-			fs:SetTextColor(1, 1, 1)
+			fs:SetTextColor(C.text[1], C.text[2], C.text[3])
+			num:SetTextColor(C.accent[1], C.accent[2], C.accent[3])
+		elseif btn.hasCount then
+			-- A count is worth noticing even when the page isn't open.
+			bg:SetVertexColor(1, 1, 1, 0)
+			bar:Hide()
+			tex:SetDesaturated(true)
+			fs:SetTextColor(C.muted[1], C.muted[2], C.muted[3])
+			num:SetTextColor(C.accent[1], C.accent[2], C.accent[3])
 		else
 			bg:SetVertexColor(1, 1, 1, 0)
 			bar:Hide()
 			tex:SetDesaturated(true)
-			fs:SetTextColor(0.65, 0.65, 0.65)
+			fs:SetTextColor(C.muted[1], C.muted[2], C.muted[3])
+			num:SetTextColor(C.dim[1], C.dim[2], C.dim[3])
 		end
 	end
 	btn:SetSelected(false)
@@ -239,6 +251,7 @@ end
 function W:CreateList(parent, rowHeight, columns, icon)
 	listCount = listCount + 1
 	local scroll = CreateFrame("ScrollFrame", "JohnnysProfessionsList" .. listCount, parent, "UIPanelScrollFrameTemplate")
+	NS.Skin:StyleScrollBar(scroll)
 	local content = CreateFrame("Frame", nil, scroll)
 	content:SetSize(10, 10)
 	scroll:SetScrollChild(content)
@@ -306,13 +319,15 @@ end
 function W:CreateHeader(parent, columns, labels)
 	local holder = CreateFrame("Frame", nil, parent)
 	holder:SetHeight(16)
+	holder.labels = {}
 	for i, c in ipairs(columns) do
 		if labels[i] then
-			local fs = holder:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+			local fs = Skin:Heading(holder, 11, Skin.C.muted)
 			fs:SetPoint("LEFT", c.x, 0)
 			fs:SetWidth(c.width)
 			fs:SetJustifyH(c.justify or "LEFT")
-			fs:SetText(labels[i])
+			fs:SetText(strupper(labels[i]))
+			holder.labels[i] = fs
 		end
 	end
 	return holder

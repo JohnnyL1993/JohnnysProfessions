@@ -18,6 +18,76 @@ local COLUMNS = {
 
 local filterButtons = {}
 local list, totalText, emptyText, scanButton, filter
+local head, hideButton
+
+-- Column sorting: click a header to sort by it (largest first, names A-Z),
+-- again to reverse, a third time to go back to the default order (items
+-- you're still short of first). `sortColumn` is an index into COLUMNS.
+local sortColumn, sortReversed = nil, false
+local HEADER_LABELS = { "Item", "Need", "You", "Alts", "Short", "Cost of short" }
+
+local function HideOwned()
+	return NS.db.profile.ui.shoppingHideOwned == true
+end
+
+local function SortValue(e, column)
+	if column == 1 then
+		return string.lower(GetItemInfo(e.id) or "")
+	elseif column == 2 then
+		return e.need
+	elseif column == 3 then
+		return e.mine
+	elseif column == 4 then
+		return e.alts
+	elseif column == 5 then
+		return e.short
+	end
+	local each = NS.Prices:GetCost(e.id)
+	return (each or 0) * e.short
+end
+
+local function SortEntries(entries)
+	if not sortColumn then
+		return
+	end
+	local column, reversed = sortColumn, sortReversed
+	table.sort(entries, function(a, b)
+		local av, bv = SortValue(a, column), SortValue(b, column)
+		if av == bv then
+			return a.id < b.id
+		end
+		-- Names read A-Z first; every number column reads largest first.
+		local ascending = (column == 1)
+		if reversed then
+			ascending = not ascending
+		end
+		if ascending then
+			return av < bv
+		end
+		return av > bv
+	end)
+end
+
+local function RefreshHeader()
+	if not head or not head.labels then
+		return
+	end
+	local C = NS.Skin.C
+	for i, fs in pairs(head.labels) do
+		local label = strupper(HEADER_LABELS[i])
+		if i == sortColumn then
+			local descending = (i ~= 1)
+			if sortReversed then
+				descending = not descending
+			end
+			fs:SetText(label .. (descending and " v" or " ^"))
+			fs:SetTextColor(C.accent[1], C.accent[2], C.accent[3])
+		else
+			fs:SetText(label)
+			fs:SetTextColor(C.muted[1], C.muted[2], C.muted[3])
+		end
+	end
+end
 
 local function Professions()
 	if filter then
@@ -74,9 +144,32 @@ end
 
 function Page:Build(f)
 	local W = NS.Widgets
-	local head = W:CreateHeader(f, COLUMNS, { "Item", "Need", "You", "Alts", "Short", "Cost of short" })
+	head = W:CreateHeader(f, COLUMNS, HEADER_LABELS)
 	head:SetPoint("TOPLEFT", 0, -28)
 	head:SetPoint("RIGHT", -24, 0)
+	-- An invisible button over each column label makes the header sortable.
+	for i, c in ipairs(COLUMNS) do
+		local b = CreateFrame("Button", nil, head)
+		b:SetPoint("LEFT", head, "LEFT", c.x, 0)
+		b:SetSize(c.width, 16)
+		b:SetScript("OnClick", function()
+			if sortColumn ~= i then
+				sortColumn, sortReversed = i, false
+			elseif not sortReversed then
+				sortReversed = true
+			else
+				sortColumn, sortReversed = nil, false
+			end
+			Page:Refresh()
+		end)
+		b:SetScript("OnEnter", function(self)
+			GameTooltip:SetOwner(self, "ANCHOR_TOP")
+			GameTooltip:AddLine("Sort by " .. string.lower(HEADER_LABELS[i]), 1, 1, 1)
+			GameTooltip:AddLine("Click again to reverse, a third time for the default order.", nil, nil, nil, true)
+			GameTooltip:Show()
+		end)
+		b:SetScript("OnLeave", function() GameTooltip:Hide() end)
+	end
 
 	list = W:CreateList(f, 18, COLUMNS, true)
 	list.scroll:SetPoint("TOPLEFT", 0, -46)
@@ -105,6 +198,14 @@ function Page:Build(f)
 		end
 	end)
 
+	hideButton = NS.Skin:CreateButton(f, 140, 22, "Hide what I have")
+	hideButton:SetPoint("LEFT", scanButton, "RIGHT", 6, 0)
+	hideButton:SetScript("OnClick", function()
+		NS.db.profile.ui.shoppingHideOwned = not HideOwned()
+		Page:Refresh()
+	end)
+	hideButton:SetScript("OnMouseUp", function(self) W:SetSelected(self, HideOwned()) end)
+
 	totalText = W:Label(f)
 	totalText:SetPoint("BOTTOMRIGHT", -2, 6)
 	totalText:SetJustifyH("RIGHT")
@@ -115,6 +216,19 @@ end
 function Page:Refresh()
 	BuildFilters(self.filterHolder)
 	local entries = NS.Guide:ShoppingList(Professions())
+	local allCount = #entries
+	if HideOwned() then
+		local short = {}
+		for _, e in ipairs(entries) do
+			if e.short > 0 then
+				table.insert(short, e)
+			end
+		end
+		entries = short
+	end
+	SortEntries(entries)
+	RefreshHeader()
+	NS.Widgets:SetSelected(hideButton, HideOwned())
 	local total, unknown = 0, 0
 	list:SetCount(#entries, function(row, i)
 		local e = entries[i]
@@ -142,7 +256,10 @@ function Page:Refresh()
 		end
 	end)
 
-	if #entries == 0 then
+	if #entries == 0 and allCount > 0 then
+		emptyText:SetText("You or your alts already hold everything the guides still need. Turn off \"Hide what I have\" to see the full list.")
+		emptyText:Show()
+	elseif #entries == 0 then
 		emptyText:SetText("Nothing to buy. Learn a profession that has a guide, or you've finished the guides for yours.")
 		emptyText:Show()
 	else

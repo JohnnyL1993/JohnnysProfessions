@@ -206,7 +206,7 @@ local function BuildCard(content, spec, y, width, faction)
 	local cy = -PAD - 32 - math.max(0, summary:GetStringHeight() - 12) - 10
 	local divider = card:CreateTexture(nil, "ARTWORK")
 	divider:SetTexture(NS.Skin.WHITE)
-	divider:SetVertexColor(0.2, 0.2, 0.2, 1)
+	divider:SetVertexColor(0.180, 0.224, 0.243, 1)
 	divider:SetPoint("TOPLEFT", PAD, cy)
 	divider:SetPoint("TOPRIGHT", -PAD, cy)
 	divider:SetHeight(1)
@@ -290,6 +290,7 @@ function Page:Build(f)
 	introText:SetTextColor(0.85, 0.85, 0.85)
 
 	scroll = CreateFrame("ScrollFrame", "JohnnysProfessionsSpecScroll", f, "UIPanelScrollFrameTemplate")
+	NS.Skin:StyleScrollBar(scroll)
 	scroll:SetPoint("TOPLEFT", 0, -98)
 	scroll:SetPoint("BOTTOMRIGHT", -24, 0)
 end

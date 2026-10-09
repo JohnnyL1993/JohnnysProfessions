@@ -194,9 +194,7 @@ local function BuildPanel()
 	end)
 	Skin:StylePanel(panel, 0.97)
 
-	local title = panel:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-	title:SetPoint("TOP", 0, -12)
-	title:SetText("Window Scale / Opacity")
+	Skin:AddHeader(panel, "Window scale / opacity", 13)
 
 	local close = Skin:CreateButton(panel, 20, 20, "X")
 	close:SetPoint("TOPRIGHT", -4, -4)
