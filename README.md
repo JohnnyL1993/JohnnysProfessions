@@ -4,6 +4,10 @@ A World of Warcraft 3.3.5a addon for the Warmane private server.
 
 An all-in-one profession companion in the spirit of Mastercraft. It includes leveling guides from 1 to 450 for every profession, a shopping list and item tracker, profit numbers from auction house prices, a materials overview, and cooldowns and professions across all your characters. Everything is in one window, and it works on its own or alongside TSM and Auctionator.
 
+## Screenshots
+
+![Johnny's Professions](screenshots/professions.png)
+
 ## Features
 
 - **Guides:** leveling routes from 1 to 450 for all 14 professions, including Inscription and Jewelcrafting.
